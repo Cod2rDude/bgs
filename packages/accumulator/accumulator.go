@@ -1,5 +1,26 @@
 package accumulator
 
+/*
+    ******************************************************************************
+    * @file     : accumulator/accumulator.go
+    * @author   : Cod2rDude
+    * @date     : March 8 2026
+    * @lastEdit : March 8 2026 @ 07:31
+    * @brief    : Accumulator is an object that accumulates a value over time.
+    * @version  : 1.1.5
+    ******************************************************************************
+    * @attention
+    *
+    * Copyright © 2026 Axon Corporation.
+    * All rights reserved.
+    *
+    * This software is licensed under terms that can be found in the LICENSE file
+    * in the root directory of this software component.
+    * If no LICENSE file comes with this software, it is provided AS-IS.
+    *
+    ******************************************************************************
+*/
+
 // Public Types
 
 /*
@@ -19,13 +40,13 @@ package accumulator
     *       with specified bounds and actions when limits are reached.
 */
 type Accumulator struct {
-    Value uint64
-    InitialValue uint64
-    LowerBound uint64
-    UpperBound uint64
-    Incrementation uint64
-    ResetWhenReachedLimit bool
-    DoWhenReachedLimit func()
+    Value                   uint64
+    InitialValue            uint64
+    LowerBound              uint64
+    UpperBound              uint64
+    Incrementation          uint64
+    ResetWhenReachedLimit   bool
+    DoWhenReachedLimit      func()
 }
 
 // Public Constructors
@@ -42,19 +63,19 @@ type Accumulator struct {
     *   @param DoWhenReachedLimit func() ;; Function to call when upper bound is reached or passed. (This can be called more than once.)
     @brief Creates a new Accumulator with the specified parameters.
     @returns
-    *   @r1 Accumulator ;; The newly created Accumulator object.
+    *   @r1 *Accumulator ;; The newly created Accumulator object.
 */
 func New(initialValue, lowerBound, upperBound, incrementation uint64,
-        resetWhenReachedLimit bool, DoWhenReachedLimit func()) Accumulator {
+        resetWhenReachedLimit bool, doWhenReachedLimit func()) *Accumulator {
+
+    if lowerBound > upperBound {
+        lowerBound, upperBound = upperBound, lowerBound
+    }
 
     if initialValue < lowerBound {
         initialValue = lowerBound
     } else if initialValue > upperBound {
         initialValue = upperBound
-    }
-
-    if lowerBound > upperBound {
-        lowerBound, upperBound = upperBound, lowerBound
     }
 
     /*
@@ -63,14 +84,14 @@ func New(initialValue, lowerBound, upperBound, incrementation uint64,
     }
     */
 
-    return Accumulator{
-        Value: initialValue,
-        InitialValue: initialValue,
-        LowerBound: lowerBound,
-        UpperBound: upperBound,
-        Incrementation: incrementation,
-        ResetWhenReachedLimit: resetWhenReachedLimit,
-        DoWhenReachedLimit: DoWhenReachedLimit,
+    return &Accumulator{
+        Value:                  initialValue,
+        InitialValue:           initialValue,
+        LowerBound:             lowerBound,
+        UpperBound:             upperBound,
+        Incrementation:         incrementation,
+        ResetWhenReachedLimit:  resetWhenReachedLimit,
+        DoWhenReachedLimit:     doWhenReachedLimit,
     }
 }
 
@@ -82,8 +103,12 @@ func New(initialValue, lowerBound, upperBound, incrementation uint64,
     *       If it has, it calls @publicVariable DoWhenReachedLimit (if it's not nil) and resets 
     *       @publicVariable Value to @publicVariable InitialValue if @publicVariable ResetWhenReachedLimit is true.
 */
-func (a Accumulator) Accumulate() {
-    a.Value += a.Incrementation
+func (a *Accumulator) Accumulate() {
+    if ^uint64(0) - a.Value < a.Incrementation {
+        a.Value = ^uint64(0)
+    } else {
+        a.Value += a.Incrementation
+    }
 
     // Don't try to check if it equals to upper bound because,
     // If incrementation is good enough it can skip upper bound.
